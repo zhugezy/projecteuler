@@ -1,0 +1,460 @@
+#include <bits/stdc++.h>
+#define MAXN 500000
+#define pb push_back
+#define LL long long
+using namespace std;
+/*int prime[MAXN + 8];
+bool notprime[MAXN + 8];
+int ind = 0;
+const int INF = 0x3f3f3f3f;
+void getprime()
+{
+    notprime[1] = true;
+    for (int i = 2; i <= MAXN; ++i)
+    {
+        if (!notprime[i])
+            prime[++ind] = i;
+        for (int j = 1; j <= ind && i * prime[j] <= MAXN; ++j)
+        {
+            notprime[i * prime[j]] = true;
+            if (i % prime[j] == 0)
+                break;
+        }
+    }
+}
+bool isprime(LL x)
+{
+    for (LL i = 2; i * i <= x; ++i)
+    {
+        if (x % i == 0)
+            return false;
+    }
+    return true;
+}
+
+
+int ppow(int i)
+{
+    return i? 10*ppow(i - 1):1;
+}*/
+//-------------------------------------------------
+struct Card
+{
+    int val;
+    int type;  //1 == Club 梅花    2 == Spade 黑桃     3 == Diamond 方片      4 == Hearts 红桃
+    Card(){}
+    Card(int _v, int _t)
+    {
+        val = _v; type = _t;
+    }
+    bool operator < (Card c2)
+    {
+        return val < c2.val;
+    }
+};
+
+vector<Card> veca, vecb;
+
+bool isflush(vector<Card> vec)
+{
+    int typ = vec[0].type;
+    for (int i = 1; i < int(vec.size()); ++i)
+    {
+        if (typ != vec[i].type)
+        {/*cout << "wwwwdp  " << i << endl;*/return false;}
+    }
+    return true;
+}
+
+int handtype(vector<Card> vec,int& ret_val1, int& ret_val2)    //vec.size() <= 5
+{
+    int Len = vec.size();
+    if (Len == 5)
+    {
+        sort(vec.begin(), vec.end());
+        if (vec[0].val == 9 && vec[1].val == 10 && vec[2].val == 11 && vec[3].val == 12 && vec[4].val == 13)
+        {
+            int ty = vec[0].type;
+            int i;
+            for (i = 1; i < 5; ++i)
+            {
+                if (vec[i].type != ty)
+                    break;
+            }
+            if (i == 5)
+            {
+                ret_val1 = 0x3f3f3f3f;
+                return 10;
+            }
+        }
+        int iii = 0;
+        for (iii = 0; iii < 4; ++iii)
+        {
+            if (vec[iii + 1].val - vec[iii].val != 1)
+                break;
+        }
+        if (iii == 4)
+        {
+            int ty = vec[0].type;
+            int i = 1;
+            for (i = 1; i < 5; ++i)
+            {
+                if (vec[i].type != ty)
+                    break;
+            }
+            if (i == 5)
+            {
+                ret_val1 = vec[4].val;
+                return 9;
+            }
+        }
+    }
+    int cnt[15];
+    memset(cnt, 0, sizeof(cnt));
+    for (int i = 0; i < Len; ++i)
+    {
+        cnt[vec[i].val]++;
+    }
+    for (int i = 1; i <= 13; ++i)
+    {
+        if (cnt[i] == 4)
+        {
+            ret_val1 = i;
+            return 8;
+        }
+        else if (cnt[i] == 3)
+        {
+            ret_val1 = i;
+            ret_val2 = 0x3f3f3f3f;
+            for (int j = 1; j <= 13; ++j)
+            {
+                if (cnt[j] == 2)
+                {
+                    ret_val2 = j;
+                    return 7;
+                }
+            }
+        }
+    }
+    if (isflush(vec) && Len == 5)
+        return 6;
+    sort(vec.begin(),vec.end());
+    if (Len == 5)
+    {
+        int i;
+        for (i = 1; i < 5; ++i)
+        {
+            if (vec[i].val - vec[i - 1].val != 1)
+                break;
+        }
+        if (i == 5)
+        {
+            ret_val1 = vec[4].val;
+            return 5;
+        }
+    }
+    for (int i = 1; i <= 13; ++i)
+    {
+        if (cnt[i] == 3)
+        {
+            ret_val1 = i;
+            return 4;
+        }
+    }
+    for (int i = 1; i <= 13; ++i)
+    {
+        for (int j = 1; j <= i - 1; ++j)
+        {
+            if (cnt[i] == 2 && cnt[j] == 2)
+            {
+                ret_val1 = i;
+                ret_val2 = j;
+                return 3;
+            }
+        }
+    }
+    for (int i = 13; i >= 1; --i)
+    {
+        if (cnt[i] == 2)
+        {
+            ret_val1 = i;
+            return 2;
+        }
+    }
+    for (int i = Len - 1; i >= 0; --i)
+    {
+        ret_val1 = vec[i].val;
+        return 1;
+    }
+    return 0;
+}
+
+void solve(vector<Card> vec)
+{
+    if (vec.empty())
+        return;
+    int ret_val1 = INF, ret_val2 = INF;
+    int tt = handtype(vec, ret_val1, ret_val2);
+    //cout << "handtype is:" << (tt = handtype(vec, ret_val1, ret_val2)) << endl;
+    //cout << "ret_val1 = " << ret_val1 << "  ret_val2 = " << ret_val2 << endl;
+    if (tt == 8)
+    {
+        vector<Card> vec2;
+        for (int i = 0; i < int(vec.size()); ++i)
+        {
+            if (vec[i].val != ret_val1)
+            {
+                vec2.push_back(vec[i]);
+            }
+        }
+        solve(vec2);
+    }
+    else if (tt == 3)
+    {
+        vector<Card> vec2;
+        for (int i = 0; i < int(vec.size()); ++i)
+        {
+            if (vec[i].val != ret_val1 && vec[i].val != ret_val2)
+            {
+                vec2.push_back(vec[i]);
+            }
+        }
+        solve(vec2);
+    }
+    else if (tt <= 4)
+    {
+        vector<Card> vec2;
+        for (int i = 0; i < int(vec.size()); ++i)
+        {
+            if (vec[i].val != ret_val1)
+            {
+                vec2.push_back(vec[i]);
+            }
+        }
+        solve(vec2);
+    }
+}
+
+vector<Card> vec;
+
+Card input(string str)
+{
+    int vv, tt;
+    if (str[1] == '0')
+    {
+        vv = 9;
+        str[0] = str[1];
+        str[1] = str[2];
+        str[2] = '\0';
+    }
+    else
+    {
+        if (str[0] == 'A')
+            vv = 13;
+        else if (str[0] == 'K')
+            vv = 12;
+        else if (str[0] == 'Q')
+            vv = 11;
+        else if (str[0] == 'J')
+            vv = 10;
+        else if (str[0] == 'T')
+            vv = 9;
+        else
+            vv = str[0] - '0' - 1;
+    }
+    if (str[1] == 'C')
+        tt = 1;
+    else if (str[1] == 'S')
+        tt = 2;
+    else if (str[1] == 'D')
+        tt = 3;
+    else
+        tt = 4;
+    return Card(vv, tt);
+}
+
+vector<Card> itera(vector<Card> raw_vec, int v1, int v2)
+{
+    vector<Card> ret;
+    for (int i = 0; i < int(raw_vec.size()); ++i)
+    {
+        int t = raw_vec[i].val;
+        if (t != v1 && t != v2)
+            ret.push_back(raw_vec[i]);
+    }
+    return ret;
+}
+bool pp(vector<Card> play1, vector<Card> play2)
+{
+    int tt1, tt2, v11, v12, v21, v22;
+    v11 = v12 = v21 = v22 = INF;
+    tt1 = handtype(play1, v11, v12);
+    tt2 = handtype(play2, v21, v22);
+    cout << tt1 << "  vs  " << tt2 << endl;
+    if (tt1 < tt2)
+    {
+        return false;
+    }
+    else if (tt1 > tt2)
+    {
+        return true;
+    }
+    else
+    {
+        if (tt1 == 10)
+        {
+            cout << "same Royal Flush!" << endl;
+            return false;
+        }
+        else if (tt1 == 9)
+        {
+            if (v11 < v21)
+                return false;
+            else if (v11 > v21)
+                return true;
+            else
+            {
+                cout << "same Straight Flush!" << endl;
+                return false;
+            }
+        }
+        else if (tt1 == 8)
+        {
+            if (v11 < v21)
+                return false;
+            else if (v11 > v21)
+                return true;
+            else
+            {
+                int v111, v112;
+                for (int i = 0; i < int(play1.size()); ++i)
+                {
+                    if (play1[i].val != v11)
+                        v111 = play1[i].val;
+                }
+                for (int i = 0; i < int(play2.size()); ++i)
+                {
+                    if (play2[i].val != v11)
+                        v112 = play2[i].val;
+                }
+                if (v111 == v112)
+                {
+                    cout << "same Four of a Kind!" << endl;
+                    return false;
+                }
+                return v111 > v112;
+            }
+        }
+        else if (tt1 == 7)
+        {
+            if (v11 == v21)
+            {
+                if (v12 == v22)
+                {
+                    cout << "same Full House!" << endl;
+                    return false;
+                }
+                return v12 > v22;
+            }
+            return v11 > v21;
+        }
+        else if (tt1 == 6)
+        {
+            cout << "same Flush!" << endl;
+            return false;
+        }
+        else if (tt1 == 5)
+        {
+            if (v11 == v21)
+            {
+                cout << "same Straight!" << endl;
+                return false;
+            }
+            return v11 > v21;
+        }
+        else if (tt1 == 4)
+        {
+            if (v11 == v21)
+            {
+                return pp(itera(play1, v11, v12), itera(play2, v21, v22));
+            }
+            return v11 > v21;
+        }
+        else if (tt1 == 3)
+        {
+            if (v11 == v21)
+            {
+                if (v12 == v22)
+                    return pp(itera(play1, v11, v12), itera(play2, v21, v22));
+                return v12 > v22;
+            }
+            return v11 > v21;
+        }
+        else if (tt1 == 2 || tt1 == 1)
+        {
+            if (v11 == v21)
+                return pp(itera(play1, v11, v12), itera(play2, v21, v22));
+            return v11 > v21;
+        }
+        else
+            return false;
+    }
+}
+void print(vector<Card> vec)
+{
+    for (auto it: vec)
+        cout << it.val << "  " << it.type << endl;
+}
+int main()
+{
+    string str;
+    vector<Card> play1, play2;
+    /*for (int i = 1; i <= 5; ++i)
+    {
+        cin >> str;
+        Card n = input(str);
+        play1.push_back(n);
+    }
+    for (int i = 1; i <= 5; ++i)
+    {
+        cin >> str;
+        Card n = input(str);
+        play2.push_back(n);
+    }
+    cout << pp(play1, play2) << endl;*/
+    ifstream fin("D:\\projecteulerdata\\p054.txt");
+    int cnt = -1;
+    int res = 0;
+
+    while(fin >> str)
+    {
+        cnt++;
+        Card newcard = input(str);
+        if (cnt % 10 <= 4)
+        {
+            play1.push_back(newcard);
+        }
+        else
+        {
+            play2.push_back(newcard);
+            if (cnt % 10 == 9)
+            {
+                //cout << str << endl;
+                if (pp(play1, play2))
+                {
+                    cout << "test" << (cnt + 1) / 10 << endl;
+                    sort(play1.begin(), play1.end());
+                    sort(play2.begin(), play2.end());
+                    print(play1);
+                    cout << endl;
+                    print(play2);
+                    cout << "//--------------" << endl;
+                    res++;
+                }
+                play1.clear();
+                play2.clear();
+            }
+        }
+    }
+    cout << res << endl;
+}
